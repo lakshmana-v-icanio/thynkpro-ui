@@ -15,6 +15,7 @@ interface FileItem {
 const UploadPage = () => {
   const [fileItems, setFileItems] = useState<FileItem[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [selectedModel, setSelectedModel] = useState("gemini-1.5-flash");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -82,6 +83,9 @@ const UploadPage = () => {
   const handleProcessFiles = () => {
     if (fileItems.length === 0) return;
     
+    // Process files using the selected model
+    console.log(`Processing files with model: ${selectedModel}`);
+    
     // Mark all pending files as completed
     setFileItems(prev => 
       prev.map(item => 
@@ -112,6 +116,11 @@ const UploadPage = () => {
 
   const handleViewDocumentData = () => {
     router.push("/document");
+  };
+
+  // Handle model change in the dropdown
+  const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedModel(e.target.value);
   };
 
   return (
@@ -172,7 +181,27 @@ const UploadPage = () => {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-medium text-gray-900 dark:text-white">Selected Files ({fileItems.length})</h2>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              {/* Model Selection Dropdown */}
+              <div className="relative">
+                <select
+                  value={selectedModel}
+                  onChange={handleModelChange}
+                  className="block appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:border-gray-400 px-4 py-1.5 pr-8 rounded-md shadow-sm text-xs leading-tight focus:outline-none focus:ring-brand-500 focus:border-brand-500"
+                >
+                  <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                  <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                  <option value="gemini-2.0s-pro">Gemini 2.0 Pro</option>
+                  <option value="claude-3-opus">Claude 3 Opus</option>
+                  <option value="gpt-4o">GPT-4o</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-700 dark:text-gray-300">
+                  <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                  </svg>
+                </div>
+              </div>
+              
               <button
                 onClick={handleRemoveAllFiles}
                 className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700"
