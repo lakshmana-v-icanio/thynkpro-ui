@@ -42,6 +42,13 @@ interface TimelineEvent {
   provider?: string;
 }
 
+interface PatientNote {
+  id: string;
+  content: string;
+  createdAt: string;
+  createdBy?: string;
+}
+
 interface PatientDetail {
   id: string;
   name: string;
@@ -66,6 +73,7 @@ interface PatientDetail {
   insuranceProvider?: string;
   insuranceNumber?: string;
   notes?: string;
+  patientNotes: PatientNote[];
 }
 
 const PatientDetailsById = ({ patientId }: { patientId: string }) => {
@@ -77,6 +85,8 @@ const PatientDetailsById = ({ patientId }: { patientId: string }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editPatientData, setEditPatientData] = useState<PatientDetail | null>(null);
+  const [isAddingNote, setIsAddingNote] = useState(false);
+  const [newNoteContent, setNewNoteContent] = useState('');
   const menuRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -216,7 +226,21 @@ const PatientDetailsById = ({ patientId }: { patientId: string }) => {
           doctorName: "Dr. Sarah Johnson",
           insuranceProvider: "HealthPlus Insurance",
           insuranceNumber: "HP-12345678",
-          notes: "Patient has been managing hypertension for 5 years. Recently diagnosed with Type 2 Diabetes."
+          notes: "Patient has been managing hypertension for 5 years. Recently diagnosed with Type 2 Diabetes.",
+          patientNotes: [
+            {
+              id: "note1",
+              content: "Patient reported feeling dizzy in the morning. Recommended to monitor blood pressure more frequently.",
+              createdAt: "2023-01-16T09:30:00Z",
+              createdBy: "Dr. Sarah Johnson"
+            },
+            {
+              id: "note2",
+              content: "Follow-up about medication side effects. Patient reports mild stomach discomfort with Metformin. Advised to take with food.",
+              createdAt: "2023-01-18T14:15:00Z",
+              createdBy: "Dr. Sarah Johnson"
+            }
+          ]
         };
         
         setPatient(mockPatient);
@@ -350,6 +374,33 @@ const PatientDetailsById = ({ patientId }: { patientId: string }) => {
     element.click();
     document.body.removeChild(element);
     setMenuOpen(false);
+  };
+
+  // Function to handle adding a new note
+  const handleAddNote = () => {
+    if (!newNoteContent.trim() || !patient) return;
+    
+    const newNote: PatientNote = {
+      id: `note${Date.now()}`,
+      content: newNoteContent,
+      createdAt: new Date().toISOString(),
+      createdBy: "Current User" // In a real app, this would be the logged-in user
+    };
+    
+    const updatedPatient = {
+      ...patient,
+      patientNotes: [...patient.patientNotes, newNote]
+    };
+    
+    setPatient(updatedPatient);
+    setNewNoteContent('');
+    setIsAddingNote(false);
+  };
+
+  // Function to cancel adding a new note
+  const handleCancelNote = () => {
+    setNewNoteContent('');
+    setIsAddingNote(false);
   };
 
   // Close menu when clicking outside
@@ -849,6 +900,95 @@ const PatientDetailsById = ({ patientId }: { patientId: string }) => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Patient Notes */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-6">
+            <div className="p-4 bg-amber-500 text-white flex justify-between items-center">
+              <h2 className="text-lg font-medium">Patient Notes</h2>
+              {!isAddingNote && (
+                <button 
+                  onClick={() => setIsAddingNote(true)}
+                  className="inline-flex items-center px-3 py-1 text-sm bg-white text-amber-500 rounded hover:bg-gray-100"
+                >
+                  <FiPlus className="mr-1" /> Add Note
+                </button>
+              )}
+            </div>
+            
+            <div className="overflow-hidden">
+              {isAddingNote && (
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                  <textarea
+                    value={newNoteContent}
+                    onChange={(e) => setNewNoteContent(e.target.value)}
+                    placeholder="Enter your note here..."
+                    className="w-full h-24 p-3 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                  <div className="mt-3 flex justify-end space-x-2">
+                    <button
+                      onClick={handleCancelNote}
+                      className="px-3 py-1 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleAddNote}
+                      className="px-3 py-1 text-sm bg-amber-500 text-white rounded-md hover:bg-amber-600"
+                    >
+                      Save Note
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {patient?.patientNotes && patient.patientNotes.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-900">
+                      <tr>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                          Note
+                        </th>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                          Created By
+                        </th>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                          Date
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                      {patient.patientNotes
+                        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                        .map((note) => (
+                          <tr key={note.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td className="px-4 py-3">
+                              <div className="text-sm text-gray-900 dark:text-white whitespace-pre-line">{note.content}</div>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="text-sm text-gray-900 dark:text-white">{note.createdBy || 'Unknown'}</div>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="text-sm text-gray-900 dark:text-white">
+                                {new Date(note.createdAt).toLocaleDateString()} {new Date(note.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : !isAddingNote && (
+                <div className="text-center py-10">
+                  <FiFileText className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">No Notes</h3>
+                  <p className="mt-1 text-gray-500 dark:text-gray-400">
+                    Click the "Add Note" button to create a new note for this patient.
+                  </p>
                 </div>
               )}
             </div>

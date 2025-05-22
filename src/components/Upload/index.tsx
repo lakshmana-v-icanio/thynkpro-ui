@@ -190,9 +190,8 @@ const UploadPage = () => {
                   className="block appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:border-gray-400 px-4 py-1.5 pr-8 rounded-md shadow-sm text-xs leading-tight focus:outline-none focus:ring-brand-500 focus:border-brand-500"
                 >
                   <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-                  <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                  <option value="gemini-2.0s-pro">Gemini 2.0 Pro</option>
-                  <option value="claude-3-opus">Claude 3 Opus</option>
+                  <option value="gemini-1.5-pro">Gemini 2.0 Pro</option>
+                  <option value="gemini-2.0s-pro">Gemini 2.5 Flash</option>
                   <option value="gpt-4o">GPT-4o</option>
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-700 dark:text-gray-300">

@@ -143,6 +143,7 @@ const DocumentDetailPage = () => {
   const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [showJsonView, setShowJsonView] = useState<boolean>(false);
 
   useEffect(() => {
     // Simulate loading data
@@ -341,7 +342,30 @@ const DocumentDetailPage = () => {
     setShowImageViewer(prev => !prev);
   };
 
-  // Add a new function to handle adding extracted medicines to patient record
+  // Add a function to format patient data as JSON
+  const getFormattedJson = () => {
+    if (!patientDetails) return '';
+    
+    // Create a formatted object with only essential data
+    const formattedData = {
+      patient: {
+        id: patientDetails.id,
+        name: patientDetails.patient_name,
+        age: patientDetails.patient_age,
+        gender: patientDetails.patient_gender,
+      },
+      medical: {
+        hospital: patientDetails.hospital_name,
+        diagnosis: patientDetails.diagnosis,
+        doctor: patientDetails.doctor_name,
+        doctor_advice: patientDetails.doctor_advice,
+        medicines: patientDetails.medicines,
+      },
+      created_at: patientDetails.created_at,
+    };
+    
+    return JSON.stringify(formattedData, null, 2);
+  };
 
   return (
     <div className="container mx-auto p-4 md:p-6 max-w-7xl">
@@ -628,7 +652,7 @@ const DocumentDetailPage = () => {
                     <>
                       {/* Tabs navigation - redesigned to match screenshot */}
                       <div className="mb-4">
-                        <div className="grid grid-cols-4 gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                        <div className="grid grid-cols-5 gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                           <button
                             className={`flex items-center justify-center px-3 py-2 text-sm rounded-md transition-all ${
                               activeTab === 'general'
@@ -670,16 +694,17 @@ const DocumentDetailPage = () => {
                           </button>
                           <button
                             className={`flex items-center justify-center px-3 py-2 text-sm rounded-md transition-all ${
-                              activeTab === 'notes'
+                              activeTab === 'json'
                                 ? 'bg-white dark:bg-gray-800 text-brand-500 shadow-sm font-medium'
                                 : 'text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-600'
                             }`}
-                            onClick={() => setActiveTab('notes')}
+                            onClick={() => setActiveTab('json')}
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${activeTab === 'notes' ? 'text-brand-500' : 'text-gray-500'} mr-1.5`} viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${activeTab === 'json' ? 'text-brand-500' : 'text-gray-500'} mr-1.5`} viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M14.5 3h-9a2.5 2.5 0 00-2.5 2.5v9a2.5 2.5 0 002.5 2.5h9a2.5 2.5 0 002.5-2.5v-9a2.5 2.5 0 00-2.5-2.5zm-9-1h9a3.5 3.5 0 013.5 3.5v9a3.5 3.5 0 01-3.5 3.5h-9a3.5 3.5 0 01-3.5-3.5v-9a3.5 3.5 0 013.5-3.5z" clipRule="evenodd" />
+                              <path d="M8.75 7a.75.75 0 00-.75.75v4.5a.75.75 0 001.5 0v-4.5A.75.75 0 008.75 7zM11.25 7a.75.75 0 00-.75.75v4.5a.75.75 0 001.5 0v-4.5A.75.75 0 0011.25 7z" />
                             </svg>
-                            <span>Notes</span>
+                            <span>JSON</span>
                           </button>
                         </div>
                       </div>
@@ -968,6 +993,119 @@ const DocumentDetailPage = () => {
                               </p>
                             </div>
                           )}
+                        </div>
+                      )}
+
+                      {activeTab === 'json' && (
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <div className="flex justify-between items-center mb-3">
+                              <h4 className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Extracted Data (JSON Format)</h4>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    if (patientDetails) {
+                                      navigator.clipboard.writeText(getFormattedJson());
+                                    }
+                                  }}
+                                  className="px-2 py-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded text-xs flex items-center hover:bg-gray-300 dark:hover:bg-gray-500"
+                                  title="Copy to clipboard"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                  </svg>
+                                  Copy
+                                </button>
+                                <button
+                                  onClick={() => setShowJsonView(!showJsonView)}
+                                  className="px-2 py-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded text-xs flex items-center hover:bg-gray-300 dark:hover:bg-gray-500"
+                                >
+                                  {showJsonView ? 'Pretty View' : 'Raw View'}
+                                </button>
+                              </div>
+                            </div>
+                            
+                            {patientDetails ? (
+                              showJsonView ? (
+                                <pre className="bg-gray-800 text-green-400 p-3 rounded-md text-xs overflow-x-auto">
+                                  {getFormattedJson()}
+                                </pre>
+                              ) : (
+                                <div className="space-y-2">
+                                  <div className="bg-white dark:bg-gray-800 p-3 rounded-md shadow-sm">
+                                    <h5 className="text-sm font-medium mb-2 text-brand-500">Patient Information</h5>
+                                    <div className="grid grid-cols-2 gap-2 text-xs">
+                                      <div>
+                                        <span className="text-gray-500 dark:text-gray-400">ID:</span>
+                                        <span className="ml-2 text-gray-900 dark:text-white">{patientDetails.id}</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-500 dark:text-gray-400">Name:</span>
+                                        <span className="ml-2 text-gray-900 dark:text-white">{patientDetails.patient_name}</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-500 dark:text-gray-400">Age:</span>
+                                        <span className="ml-2 text-gray-900 dark:text-white">{patientDetails.patient_age || 'N/A'}</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-500 dark:text-gray-400">Gender:</span>
+                                        <span className="ml-2 text-gray-900 dark:text-white">{patientDetails.patient_gender || 'N/A'}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="bg-white dark:bg-gray-800 p-3 rounded-md shadow-sm">
+                                    <h5 className="text-sm font-medium mb-2 text-brand-500">Medical Information</h5>
+                                    <div className="space-y-2 text-xs">
+                                      <div>
+                                        <span className="text-gray-500 dark:text-gray-400">Hospital:</span>
+                                        <span className="ml-2 text-gray-900 dark:text-white">{patientDetails.hospital_name || 'N/A'}</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-500 dark:text-gray-400">Diagnosis:</span>
+                                        <span className="ml-2 text-gray-900 dark:text-white">{patientDetails.diagnosis || 'N/A'}</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-500 dark:text-gray-400">Doctor:</span>
+                                        <span className="ml-2 text-gray-900 dark:text-white">{patientDetails.doctor_name || 'N/A'}</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-500 dark:text-gray-400">Doctor's Advice:</span>
+                                        <span className="ml-2 text-gray-900 dark:text-white">{patientDetails.doctor_advice || 'N/A'}</span>
+                                      </div>
+                                      
+                                      {patientDetails.medicines && patientDetails.medicines.length > 0 && (
+                                        <div>
+                                          <span className="text-gray-500 dark:text-gray-400 block mb-1">Medicines:</span>
+                                          <div className="pl-2 space-y-1">
+                                            {patientDetails.medicines.map((med, i) => (
+                                              <div key={i} className="bg-gray-50 dark:bg-gray-700 p-1.5 rounded">
+                                                <div>{med.medicine_name} - {med.dosage} ({med.frequency})</div>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="bg-white dark:bg-gray-800 p-3 rounded-md shadow-sm">
+                                    <h5 className="text-sm font-medium mb-2 text-brand-500">Metadata</h5>
+                                    <div className="text-xs">
+                                      <span className="text-gray-500 dark:text-gray-400">Created:</span>
+                                      <span className="ml-2 text-gray-900 dark:text-white">
+                                        {patientDetails.created_at ? new Date(patientDetails.created_at).toLocaleString() : 'N/A'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            ) : (
+                              <div className="bg-white dark:bg-gray-800 p-4 rounded-md text-center">
+                                <p className="text-gray-500 dark:text-gray-400">No data available</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
                       </div>
